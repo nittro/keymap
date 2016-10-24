@@ -1,0 +1,25 @@
+{
+    "files": {
+        "js": [
+            "src/js/Nittro/Extras/Keymap/Keymap.js",
+            "src/js/Nittro/Extras/Keymap/TabContext.js",
+            "src/js/Nittro/Extras/Keymap/Keys.js",
+            "src/js/Nittro/Extras/Keymap/Manager.js"
+        ],
+        "css": []
+    },
+    "bridges": {
+        "nittro-di": {
+            "files": [
+                "src/js/Nittro/Extras/Keymap/Bridges/KeymapDI/KeymapExtension.js"
+            ],
+            "extensions": {
+                "flashes": "Nittro.Extras.Keymap.Bridges.KeymapDI.KeymapExtension()"
+            }
+        }
+    },
+    "compat": {
+        "es5": true,
+        "flex": true
+    }
+}
