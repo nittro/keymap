@@ -65,8 +65,10 @@ _context.invoke('Nittro.Extras.Keymap', function (DOM, Keymap, TabContext, Keys)
                     handler = this._.keymaps[0].get(key);
 
                     if (handler) {
-                        evt.preventDefault();
-                        handler.call(null);
+                        if (handler.call(null, key, evt) !== false) {
+                            evt.preventDefault();
+                        }
+
                         return;
                     }
                 }

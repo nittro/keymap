@@ -55,6 +55,40 @@ _context.invoke('Nittro.Extras.Keymap', function (Arrays, DOM, undefined) {
 
         },
 
+        remove: function (items) {
+            if (!Array.isArray(items)) {
+                items = Arrays.createFrom(arguments);
+            }
+
+            items.forEach(function (item) {
+                var index = this._.items.indexOf(item);
+
+                if (index > -1) {
+                    if (item instanceof Element) {
+                        DOM.removeListener(item, 'focus', this._.handlers[index]);
+
+                    } else if (typeof item.off === 'function') {
+                        item.off('focus', this._.handlers[index]);
+
+                    }
+
+                    this._.items.splice(index, 1);
+                    this._.handlers.splice(index, 1);
+                    this._.disabled.splice(index, 1);
+
+                    if (this._.lastFocused >= index) {
+                        this._.lastFocused--;
+                    }
+                }
+            }.bind(this));
+
+            if (this._.lastFocused && this._.lastFocused < 0) {
+                this._.lastFocused = null;
+            }
+
+            return this;
+        },
+
         insert: function (items, index) {
             if (!Array.isArray(items)) {
                 items = [items];
@@ -234,7 +268,7 @@ _context.invoke('Nittro.Extras.Keymap', function (Arrays, DOM, undefined) {
             return true;
         },
 
-        destroy: function () {
+        clear: function () {
             this._.items.forEach(function (item, index) {
                 if (item instanceof Element) {
                     DOM.removeListener(item, 'focus', this._.handlers[index]);
@@ -249,8 +283,15 @@ _context.invoke('Nittro.Extras.Keymap', function (Arrays, DOM, undefined) {
                 }
             }.bind(this));
 
-            this._.items = this._.handlers = this._.disabled = null;
+            this._.items = [];
+            this._.handlers = [];
+            this._.disabled = [];
+            this._.lastFocused = null;
+            return this;
+        },
 
+        destroy: function () {
+            return this.clear();
         },
 
         _handleFocus: function (item) {
@@ -398,8 +439,10 @@ _context.invoke('Nittro.Extras.Keymap', function (DOM, Keymap, TabContext, Keys)
                     handler = this._.keymaps[0].get(key);
 
                     if (handler) {
-                        evt.preventDefault();
-                        handler.call(null);
+                        if (handler.call(null, key, evt) !== false) {
+                            evt.preventDefault();
+                        }
+
                         return;
                     }
                 }
