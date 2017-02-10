@@ -1,4 +1,4 @@
-_context.invoke(function () {
+_context.invoke('Nittro.Extras.Keymap.Bridges.KeymapDI', function () {
 
     var KeymapExtension = _context.extend('Nittro.DI.BuilderExtension', function (containerBuilder, config) {
         KeymapExtension.Super.call(this, containerBuilder, config);
