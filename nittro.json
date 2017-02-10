@@ -14,7 +14,7 @@
                 "src/Bridges/KeymapDI/KeymapExtension.js"
             ],
             "extensions": {
-                "flashes": "Nittro.Extras.Keymap.Bridges.KeymapDI.KeymapExtension()"
+                "keymap": "Nittro.Extras.Keymap.Bridges.KeymapDI.KeymapExtension()"
             }
         }
     },
