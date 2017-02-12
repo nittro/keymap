@@ -18,6 +18,35 @@ _context.invoke('Nittro.Extras.Keymap', function (Arrays, DOM, undefined) {
 
         },
 
+        addFromContainer: function (container, links, index) {
+            var elements = Arrays.createFrom(container.getElementsByTagName('input'))
+                .concat(Arrays.createFrom(container.getElementsByTagName('select')))
+                .concat(Arrays.createFrom(container.getElementsByTagName('textarea')))
+                .concat(Arrays.createFrom(container.getElementsByTagName('button')));
+
+            if (links) {
+                elements = elements.concat(Arrays.createFrom(container.getElementsByTagName('a')));
+            }
+
+            elements = elements.filter(function (elem) {
+                return elem.tabIndex !== -1;
+            });
+
+            elements.sort(function (a, b) {
+                if (a.tabIndex > 0 && b.tabIndex > 0) {
+                    return a.tabIndex - b.tabIndex || ((a.compareDocumentPosition(b) & 4) ? -1 : 1);
+                } else if (a.tabIndex > 0) {
+                    return -1;
+                } else if (b.tabIndex > 0) {
+                    return 1;
+                } else {
+                    return (a.compareDocumentPosition(b) & 4) ? -1 : 1;
+                }
+            });
+
+            return this.insert(elements, index);
+        },
+
         remove: function (items) {
             if (!Array.isArray(items)) {
                 items = Arrays.createFrom(arguments);
@@ -57,7 +86,7 @@ _context.invoke('Nittro.Extras.Keymap', function (Arrays, DOM, undefined) {
                 items = [items];
             }
 
-            if (index === undefined) {
+            if (typeof index !== 'number') {
                 index = this._.items.length;
             }
 
