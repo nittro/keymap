@@ -1,11 +1,12 @@
 _context.invoke('Nittro.Extras.Keymap', function (Arrays, DOM, undefined) {
 
+    var anonId = 0;
+
     var TabContext = _context.extend('Nittro.Object', function() {
         TabContext.Super.call(this);
 
         this._.items = [];
         this._.handlers = [];
-        this._.disabled = [];
         this._.lastFocused = null;
 
     }, {
@@ -28,7 +29,17 @@ _context.invoke('Nittro.Extras.Keymap', function (Arrays, DOM, undefined) {
                 elements = elements.concat(Arrays.createFrom(container.getElementsByTagName('a')));
             }
 
+            var radios = {};
+
             elements = elements.filter(function (elem) {
+                if (elem.tagName === 'INPUT' && elem.type === 'radio') {
+                    if (radios[elem.name]) {
+                        return false;
+                    } else {
+                        radios[elem.name] = true;
+                    }
+                }
+
                 return elem.tabIndex !== -1;
             });
 
@@ -66,7 +77,6 @@ _context.invoke('Nittro.Extras.Keymap', function (Arrays, DOM, undefined) {
 
                     this._.items.splice(index, 1);
                     this._.handlers.splice(index, 1);
-                    this._.disabled.splice(index, 1);
 
                     if (this._.lastFocused >= index) {
                         this._.lastFocused--;
@@ -90,79 +100,56 @@ _context.invoke('Nittro.Extras.Keymap', function (Arrays, DOM, undefined) {
                 index = this._.items.length;
             }
 
-            var handlers = [],
-                disabled = [];
+            var handlers = [];
 
-            items.forEach(function (item) {
+            items = items.map(function (item) {
                 if (typeof item.focus !== 'function') {
                     throw new TypeError("Invalid item: doesn't have a focus() method");
                 }
 
                 var handler = null,
-                    dis = !!item.disabled;
+                    id = null;
 
                 if (item instanceof Element) {
-                    handler = this._handleFocus.bind(this, item);
+                    if (!item.hasAttribute('id')) {
+                        item.setAttribute('id', 'tabContext-item' + (++anonId));
+                    }
+
+                    id = item.getAttribute('id');
+                    handler = this._handleFocus.bind(this, id);
                     DOM.addListener(item, 'focus', handler);
 
                 } else if (typeof item.on === 'function') {
                     handler = this._handleFocus.bind(this, item);
                     item.on('focus', handler);
-
-                }
-
-                if (typeof item.isDisabled === 'function') {
-                    dis = item.isDisabled();
                 }
 
                 handlers.push(handler);
-                disabled.push(dis);
+                return id || item;
 
             }.bind(this));
 
             items.unshift(index, 0);
             handlers.unshift(index, 0);
-            disabled.unshift(index, 0);
 
             this._.items.splice.apply(this._.items, items);
             this._.handlers.splice.apply(this._.handlers, handlers);
-            this._.disabled.splice.apply(this._.disabled, disabled);
 
             return this;
 
         },
 
-        setDisabled: function(items, disabled) {
-            if (!Array.isArray(items)) {
-                items = [items];
-            }
-
-            if (disabled === undefined) {
-                disabled = true;
-            }
-
-            items.forEach(function (item) {
-                if (typeof item !== 'number') {
-                    item = this._.items.indexOf(item);
-
-                    if (item === -1) {
-                        return;
-                    }
-                }
-
-                this._.disabled[item] = disabled;
-
+        isDisabled: function () {
+            return this._.items.some(function (item, index) {
+                return this._getItem(item) && this._isDisabled(index);
             }.bind(this));
-
-            return this;
-
         },
 
         focus: function () {
             if (this._.items.length) {
                 this._.lastFocused = 0;
 
-                while (this._.disabled[this._.lastFocused]) {
+                while (this._isDisabled(this._.lastFocused)) {
                     this._.lastFocused++;
 
                     if (this._.lastFocused >= this._.items.length) {
@@ -172,7 +159,6 @@ _context.invoke('Nittro.Extras.Keymap', function (Arrays, DOM, undefined) {
                 }
 
                 this._.items[this._.lastFocused].focus();
-                this.trigger('focus');
 
             }
         },
@@ -211,7 +197,7 @@ _context.invoke('Nittro.Extras.Keymap', function (Arrays, DOM, undefined) {
                     return false;
 
                 }
-            } while (this._.disabled[index]);
+            } while (this._isDisabled(index));
 
             this._.lastFocused = index;
             this._.items[index].focus();
@@ -253,7 +239,7 @@ _context.invoke('Nittro.Extras.Keymap', function (Arrays, DOM, undefined) {
                     return false;
 
                 }
-            } while (this._.disabled[index]);
+            } while (this._isDisabled(index));
 
             this._.lastFocused = index;
             this._.items[index].focus();
@@ -262,7 +248,7 @@ _context.invoke('Nittro.Extras.Keymap', function (Arrays, DOM, undefined) {
 
         clear: function () {
             this._.items.forEach(function (item, index) {
-                if (item instanceof Element) {
+                if (typeof item === 'string') {
                     DOM.removeListener(item, 'focus', this._.handlers[index]);
 
                 } else if (typeof item.off === 'function') {
@@ -277,7 +263,6 @@ _context.invoke('Nittro.Extras.Keymap', function (Arrays, DOM, undefined) {
 
             this._.items = [];
             this._.handlers = [];
-            this._.disabled = [];
             this._.lastFocused = null;
             return this;
         },
@@ -286,8 +271,23 @@ _context.invoke('Nittro.Extras.Keymap', function (Arrays, DOM, undefined) {
             return this.clear();
         },
 
+        _getItem: function (item) {
+            return typeof item === 'string' ? DOM.getById(item) : item;
+        },
+
+        _isDisabled: function (index) {
+            var item = this._getItem(this._.items[index]);
+
+            if (!item) {
+                return true;
+            }
+
+            return item instanceof Element ? item.disabled : (typeof item.isDisabled === 'function' ? item.isDisabled() : false);
+        },
+
         _handleFocus: function (item) {
             this._.lastFocused = this._.items.indexOf(item);
+            this.trigger('focus');
         }
     });
 
