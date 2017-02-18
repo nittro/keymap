@@ -158,7 +158,7 @@ _context.invoke('Nittro.Extras.Keymap', function (Arrays, DOM, undefined) {
                     }
                 }
 
-                this._.items[this._.lastFocused].focus();
+                this._getItem(this._.items[this._.lastFocused]).focus();
 
             }
         },
@@ -200,7 +200,7 @@ _context.invoke('Nittro.Extras.Keymap', function (Arrays, DOM, undefined) {
             } while (this._isDisabled(index));
 
             this._.lastFocused = index;
-            this._.items[index].focus();
+            this._getItem(this._.items[index]).focus();
             return true;
 
         },
@@ -242,7 +242,7 @@ _context.invoke('Nittro.Extras.Keymap', function (Arrays, DOM, undefined) {
             } while (this._isDisabled(index));
 
             this._.lastFocused = index;
-            this._.items[index].focus();
+            this._getItem(this._.items[index]).focus();
             return true;
         },
 
