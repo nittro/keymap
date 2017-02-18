@@ -32,11 +32,15 @@ _context.invoke('Nittro.Extras.Keymap', function (Arrays, DOM, undefined) {
             var radios = {};
 
             elements = elements.filter(function (elem) {
-                if (elem.tagName === 'INPUT' && elem.type === 'radio') {
-                    if (radios[elem.name]) {
+                if (elem.tagName === 'INPUT') {
+                    if (elem.type === 'radio') {
+                        if (radios[elem.name]) {
+                            return false;
+                        } else {
+                            radios[elem.name] = true;
+                        }
+                    } else if (elem.type === 'hidden') {
                         return false;
-                    } else {
-                        radios[elem.name] = true;
                     }
                 }
 
